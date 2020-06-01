@@ -1,5 +1,6 @@
 # SimpleAllocationOperatorsChecker
 Simple checker that triggers some basic sanity checks when using <i> new </i> and <i> delete </i> operators.
+
 Functionalities:
   - Show warning when <i> delete </i> is called on a null
   - Show warning when <i> delete </i> is called multiple times on same memory location
