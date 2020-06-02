@@ -10,60 +10,60 @@ using namespace ento;
 
 namespace {
   enum class AllocationStatus{
-  None,
-  Allocated,
-  Deallocated
+    None,
+    Allocated,
+    Deallocated
   };
 
   class AllocationStatusContext{
   private:
-  AllocationStatus _status;
+    AllocationStatus _status;
 
   public:
-  AllocationStatusContext(AllocationStatus status)
-  : _status(status){
-  }
+    AllocationStatusContext(AllocationStatus status)
+      : _status(status){
+    }
   
-  bool isAllocated() const {
-    return _status == AllocationStatus::Allocated;
-  }
-
-  bool isDeallocated() const{
-    return _status == AllocationStatus::Deallocated;
-  }
-
-  bool Deallocate() {
-    if(_status == AllocationStatus::Deallocated){
-    return false;
+    bool isAllocated() const {
+      return _status == AllocationStatus::Allocated;
     }
-    else{
-    _status = AllocationStatus::Deallocated;
-    return true;
-    }
-  }
 
-  bool Allocate() {
-    if(_status == AllocationStatus::Allocated){
-    return false;
-    }else{
-    _status = AllocationStatus::Allocated;
-    return true;
+    bool isDeallocated() const{
+      return _status == AllocationStatus::Deallocated;
     }
-  }
+
+    bool Deallocate() {
+      if(_status == AllocationStatus::Deallocated){
+        return false;
+      }
+      else{
+        _status = AllocationStatus::Deallocated;
+        return true;
+      }
+    }
+
+    bool Allocate() {
+      if(_status == AllocationStatus::Allocated){
+        return false;
+      }else{
+        _status = AllocationStatus::Allocated;
+        return true;
+      }
+    }
 
   // Needed if we are going to use generic maps
   // Used for a comparision of nodes
-  bool operator==(const AllocationStatusContext &X) const {
-    return _status == X._status;
+    bool operator==(const AllocationStatusContext &X) const {
+      return _status == X._status;
     }
 
-    // LLVM's equivalent of hash map
-    // Passing bits of information to FoldintSetNodeID via Add_ methods
-    // let us generate hash map values for each node
+      // LLVM's equivalent of hash map
+      // Passing bits of information to FoldintSetNodeID via Add_ methods
+      // let us generate hash map values for each node
     void Profile(llvm::FoldingSetNodeID &ID) const {
-    ID.AddInteger((int)_status);
+      ID.AddInteger((int)_status);
     }
-  };
+    };
 }
 
 namespace {
