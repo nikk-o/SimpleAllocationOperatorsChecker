@@ -1,14 +1,14 @@
 class A{};
 
 void test_1(){
-	A* obj = nullptr;
+  A* obj = nullptr;
 
-	delete obj; // Should generate warning
+  delete obj; // Should generate warning
 }
 
 int main(){
-	test_1();
+  test_1();
 
-	return 0;
+  return 0;
 }
 

@@ -1,14 +1,14 @@
 class A{};
 
 void test_2(){
-	A* obj = new A();
-	delete obj;
+  A* obj = new A();
+  delete obj;
 
-	obj = new A(); // This should generate warning
+  obj = new A(); // This should generate warning
 }
 
 int main(){
-	test_2();
+  test_2();
 
-	return 0;
+  return 0;
 }
