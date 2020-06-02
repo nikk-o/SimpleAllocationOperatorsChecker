@@ -79,12 +79,8 @@ namespace {
 		std::unique_ptr<BugType> possibleDeleteCalledOnNull;
 		std::unique_ptr<BugType> useAfterDelete;
 
-		void ReportDeleteCalledMultipleBug(CheckerContext& checkerContext) const;
 		void ReportMemoryLeakBug(std::vector<SymbolRef> symbols, CheckerContext& checkerContext) const;
-		void ReportDeleteCalledOnNull(CheckerContext& checkerContext) const;
-		void ReportPossibleDeleteCalledOnNull(CheckerContext& checkerContext) const;
-		void ReportUseAfterDelete(CheckerContext& checkerContext) const;
-
+		void ReportBug(CheckerContext& checkerContext, std::unique_ptr<BugType> bugType, std::string message, bool sinkNode) const;
 
 	public:
 		DeleteOperatorChecker();
@@ -128,11 +124,11 @@ void DeleteOperatorChecker::checkPreStmt(const CXXDeleteExpr* expr, CheckerConte
     ConditionTruthVal isNullCondition = state->isNull(argSVal);
 
     if(isNullCondition.isConstrainedTrue()){
-    	ReportDeleteCalledOnNull(checkerContext);
+    	ReportBug(checkerContext, deleteCalledOnNull, "Delete called on a null.", true);
     }
     else if(isNullCondition.isUnderconstrained()){
     	// Reports warning when no nullability checks are done in code
-    	ReportPossibleDeleteCalledOnNull(checkerContext);
+    	ReportBug(checkerContext, possibleDeleteCalledOnNull, "There's possibility of calling delete on a null.", false);
     }
 
 	const AllocationStatusContext *asc = state->get<AllocationMap>(argSymbol);
@@ -144,7 +140,7 @@ void DeleteOperatorChecker::checkPreStmt(const CXXDeleteExpr* expr, CheckerConte
 	}
 
 	if(asc->isDeallocated()){
-		ReportDeleteCalledMultipleBug(checkerContext);
+		ReportBug(checkerContext, deleteCalledMultiple, "Delete called multiple times on the same memory location.", true);
 	}
 
 	// Set status of our argument symbol to deallocated and add thetransition to the next state
@@ -184,7 +180,7 @@ void DeleteOperatorChecker::checkPreCall(const CallEvent& call, CheckerContext& 
 	const AllocationStatusContext *asc = state->get<AllocationMap>(symbol);
 
 	if(asc != nullptr && asc->isDeallocated()){
-		ReportUseAfterDelete(checkerContext);
+		ReportBug(checkerContext, useAfterDelete, "Object used after delete.", true);
 	}
 }
 
@@ -237,22 +233,21 @@ void DeleteOperatorChecker::checkPreStmt(const MemberExpr* expr, CheckerContext&
 	const AllocationStatusContext *asc = state->get<AllocationMap>(symbol);
 
 	if(asc != nullptr && asc->isDeallocated()){
-		ReportUseAfterDelete(checkerContext);
+		ReportBug(checkerContext, useAfterDelete, "Object used after delete.", true);
 	}
 }
 
+void DeleteOperatorChecker::ReportBug(CheckerContext& checkerContext, std::unique_ptr<BugType> bugType, std::string message, bool sinkNode) const{
 
-void DeleteOperatorChecker::ReportDeleteCalledMultipleBug(CheckerContext& checkerContext) const{
-
-	ExplodedNode *errorNode = checkerContext.generateErrorNode();
+	ExplodedNode* errorNode = sinkNode ? checkerContext.generateErrorNode() : checkerContext.generateNonFatalErrorNode();
 
 	if(!errorNode){
 		return;
 	}
 
 	auto bugReport = std::make_unique<PathSensitiveBugReport>(
-		*deleteCalledMultiple, "Delete called multiple times on the same memory location.", errorNode);
-
+		*bugType, message, errorNode);
+	
 	checkerContext.emitReport(std::move(bugReport));
 }
 
@@ -270,49 +265,6 @@ void DeleteOperatorChecker::ReportMemoryLeakBug(std::vector<SymbolRef> symbols, 
 
 	checkerContext.emitReport(std::move(bugReport));
 }
-
-void DeleteOperatorChecker::ReportDeleteCalledOnNull(CheckerContext& checkerContext) const{
-
-	ExplodedNode *errorNode = checkerContext.generateErrorNode();
-
-	if(!errorNode){
-		return;
-	}
-
-	auto bugReport = std::make_unique<PathSensitiveBugReport>(
-		*deleteCalledOnNull, "Delete called on a null.", errorNode);
-
-	checkerContext.emitReport(std::move(bugReport));
-}
-
-void DeleteOperatorChecker::ReportPossibleDeleteCalledOnNull(CheckerContext& checkerContext) const{
-	// We want to keep exploring down the path here
-	ExplodedNode *errorNode = checkerContext.generateNonFatalErrorNode();
-
-	if(!errorNode){
-		return;
-	}
-
-	auto bugReport = std::make_unique<PathSensitiveBugReport>(
-		*possibleDeleteCalledOnNull, "There's possibility of calling delete on a null.", errorNode);
-
-	checkerContext.emitReport(std::move(bugReport));
-}
-
-void DeleteOperatorChecker::ReportUseAfterDelete(CheckerContext& checkerContext) const{
-
-	ExplodedNode *errorNode = checkerContext.generateErrorNode();
-
-	if(!errorNode){
-		return;
-	}
-
-	auto bugReport = std::make_unique<PathSensitiveBugReport>(
-		*useAfterDelete, "Object used after delete.", errorNode);
-
-	checkerContext.emitReport(std::move(bugReport));	
-}
-
 // Checker Registration
 
 void ento::registerDeleteOperatorChecker(CheckerManager &mgr) {
