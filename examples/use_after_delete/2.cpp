@@ -8,11 +8,5 @@ void test_2(){
   A* obj = new A();
   delete obj;
 
-  obj->someFunction(); // This should generate warning/error
-}
-
-int main(){
-  test_2();
-
-  return 0;
+  obj->someFunction(); // This should generate warning: "Object used after delete."
 }

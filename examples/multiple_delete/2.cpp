@@ -7,9 +7,3 @@ void test_2(){
   obj = new A();
   delete obj; // This shouldn't generate warning
 }
-
-int main(){
-  test_2();
-
-  return 0;
-}

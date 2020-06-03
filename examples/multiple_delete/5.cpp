@@ -11,9 +11,3 @@ void test_5(){
   obj = test_5_helper();
   delete obj; // This shouldn't generate warning
 }
-
-int main(){
-  test_5();
-
-  return 0;
-}

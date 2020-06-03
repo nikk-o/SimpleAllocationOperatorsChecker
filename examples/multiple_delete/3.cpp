@@ -8,11 +8,5 @@ void test_3(){
   A* obj = new A();
   delete obj;
 
-  test_3_helper(obj); // This should generate warning
-}
-
-int main(){
-  test_3();
-
-  return 0;
+  test_3_helper(obj); // This should generate warning: "Delete called multiple times on the same memory location."
 }

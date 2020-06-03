@@ -9,11 +9,5 @@ void test_3_helper(A* obj){
 void test_3(){
   A* obj = nullptr;
 
-  test_3_helper(obj); // Should generate warning
-}
-
-int main(){
-  test_3();
-
-  return 0;
+  test_3_helper(obj); // Should generate warning "Delete called on a null."
 }

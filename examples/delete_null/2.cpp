@@ -11,9 +11,3 @@ void test_2(){
 
   test_2_helper(obj); // Shouldn't generate warning
 }
-
-int main(){
-  test_2();
-
-  return 0;
-}

@@ -1,11 +1,6 @@
 class A{};
 
 void test_3(){
-  new A(); // This should generate warning (and it does! :) )
+  new A(); // This should generate warning : "You haven't released allocated memory."
 }
 
-int main(){
-  test_3();
-
-  return 0;
-}
